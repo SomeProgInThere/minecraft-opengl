@@ -1,29 +1,23 @@
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include "shader.hpp"
+#include "texture_atlas.hpp"
+
 #include <iostream>
 
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
-
 float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
+    // Position        TexCoords
+    0.5f,  0.5f, 0.0f, 1.0f, 1.0f,   // top right
+    0.5f, -0.5f, 0.0f, 1.0f, 0.0f,   // bottom right
+   -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,   // bottom left
+   -0.5f,  0.5f, 0.0f, 0.0f, 1.0f,   // top left
 };
 
-auto vertex_shader_source =
-    "#version 460 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-
-auto fragment_shader_source =
-    "#version 460 core\n"
-    "out vec4 fragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   fragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\0";
+unsigned int indices[] = {
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
+};
 
 int main() {
     glfwInit();
@@ -32,7 +26,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Hello World", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 800, "Hello World", nullptr, nullptr);
     if (!window) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -46,58 +40,51 @@ int main() {
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, 800, 800);
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, const int width, const int height) {
         glViewport(0, 0, width, height);
     });
 
-    unsigned int vbo;
-    glGenBuffers(1, &vbo);
+    const Shader program("vertex.glsl", "frag.glsl");
 
-    const unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertex_shader_source, nullptr);
-    glCompileShader(vertexShader);
+    unsigned int vertexArray;
+    glGenVertexArrays(1, &vertexArray);
+    glBindVertexArray(vertexArray);
 
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
+    unsigned int vertexBuffer;
+    glGenBuffers(1, &vertexBuffer);
 
-    const unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragment_shader_source, nullptr);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-    const unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-
-    glUseProgram(shaderProgram);
-
-    unsigned int vao;
-    glGenVertexArrays(1, &vao);
-
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    unsigned int indexBuffer;
+    glGenBuffers(1, &indexBuffer);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    TextureAtlas manager;
+    manager.addTexture("test0", "test.png");
+    manager.addTexture("test1", "test1.png");
+    manager.addTexture("test2", "test2.png");
+    manager.addTexture("test3", "test3.png");
+
+    if (!manager.build()) {
+        std::cout << "Failed to build texture atlas" << std::endl;
+        return -1;
+    }
+
+    if (!manager.save("atlas.png")) {
+        std::cout << "Failed to save texture atlas" << std::endl;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, manager.getID());
 
     while (!glfwWindowShouldClose(window)) {
 
@@ -108,16 +95,25 @@ int main() {
         glClearColor(0.4f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        program.use();
+
+        const AtlasRegion* region = manager.getRegion("test1");
+
+        program.setUniformv2f("texOffset", region->topLeft);
+        program.setUniformv2f("texScale", {
+            region->bottomRight.x - region->topLeft.x,
+            region->bottomRight.y - region->topLeft.y
+        });
+
+        glBindVertexArray(vertexArray);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    manager.unloadAll();
 
     glfwTerminate();
     return 0;
