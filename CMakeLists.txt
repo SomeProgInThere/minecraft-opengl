@@ -23,15 +23,25 @@ set_target_properties(
         INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/deps/glfw/include"
 )
 
+add_library(freetype2 STATIC IMPORTED)
+set_target_properties(
+        freetype2 PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/deps/freetype2/lib/freetype.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/deps/freetype2/include"
+)
+
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/glm"
         "${CMAKE_CURRENT_SOURCE_DIR}/deps/stb"
 )
 
-add_executable(minecraft_opengl main.cpp
-        shader.hpp
-        shader.cpp
-        texture_atlas.cpp
-        texture_atlas.hpp)
+add_executable(minecraft_opengl src/main.cpp
+        src/shader.hpp
+        src/shader.cpp
+        src/texture_atlas.cpp
+        src/texture_atlas.hpp
+        src/camera.hpp
+        src/camera.cpp
+)
 
-target_link_libraries(minecraft_opengl PRIVATE glad glfw)
+target_link_libraries(minecraft_opengl PRIVATE glad glfw freetype2)

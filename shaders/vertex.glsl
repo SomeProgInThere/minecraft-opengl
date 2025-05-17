@@ -5,10 +5,14 @@ layout (location = 1) in vec2 inTexCoord;
 
 out vec2 texCoord;
 
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
 uniform vec2 texOffset;
 uniform vec2 texScale;
 
 void main() {
-    gl_Position = vec4(inPos, 1.0);
+    gl_Position = projection * view * model * vec4(inPos, 1.0);
     texCoord = texOffset + inTexCoord * texScale;
 }
