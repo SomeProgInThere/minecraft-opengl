@@ -67,14 +67,14 @@ Shader::Shader(const char* vertexName, const char* fragmentName) {
         std::cout << "Fragment Shader Compilation Error:\n" << infoLog << std::endl;
     }
 
-    program = glCreateProgram();
-    glAttachShader(program, vertex);
-    glAttachShader(program, fragment);
-    glLinkProgram(program);
+    Program = glCreateProgram();
+    glAttachShader(Program, vertex);
+    glAttachShader(Program, fragment);
+    glLinkProgram(Program);
 
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    glGetProgramiv(Program, GL_LINK_STATUS, &success);
     if (!success) {
-        glGetProgramInfoLog(program, sizeof(infoLog), nullptr, infoLog);
+        glGetProgramInfoLog(Program, sizeof(infoLog), nullptr, infoLog);
         std::cout << "Shader Linking Error:\n" << infoLog << std::endl;
     }
 
@@ -83,15 +83,15 @@ Shader::Shader(const char* vertexName, const char* fragmentName) {
 }
 
 void Shader::setUniformVec2(const char *name, const glm::vec2 value) const {
-    const int location = glGetUniformLocation(program, name);
+    const int location = glGetUniformLocation(Program, name);
     glUniform2f(location, value.x, value.y);
 }
 
 void Shader::setUniformMat4(const char *name, glm::mat4 value) const {
-    const int location = glGetUniformLocation(program, name);
+    const int location = glGetUniformLocation(Program, name);
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::use() const {
-    glUseProgram(program);
+    glUseProgram(Program);
 }

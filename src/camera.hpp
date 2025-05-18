@@ -30,29 +30,26 @@ class Camera {
 public:
     Camera(glm::vec3 position, float aspectRatio);
 
-    void updateUniforms(const Shader& program) const;
-    void saveOrientation(bool useSaved);
+    void updateUniforms(const Shader& shader) const;
 
     void processKeyboard(CameraMovement direction, float deltaTime);
-    void processMouseMovement(float xOffset, float yOffset);
+    void processMouseMovement(float offsetX, float offsetY);
     void processMouseScroll(float yOffset);
 
-    glm::vec3 position;
+    glm::vec3 Position{};
 
-    float aspectRatio;
-    float fov;
-    float movementSpeed;
-    float mouseSensitivity;
+    float AspectRatio;
+    float Fov;
+    float MovementSpeed;
+    float MouseSensitivity;
 
 private:
     void updateVectors();
 
-    glm::vec3 m_front;
-    glm::vec3 m_right;
-    glm::vec3 m_up;
+    glm::vec3 m_front{};
+    glm::vec3 m_right{};
+    glm::vec3 m_up{};
 
     float m_yaw;
     float m_pitch;
-    float m_savedYaw;
-    float m_savedPitch;
 };

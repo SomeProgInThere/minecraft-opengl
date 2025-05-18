@@ -9,5 +9,5 @@ public:
     void setUniformVec2(const char* name, glm::vec2 value) const;
     void setUniformMat4(const char* name, glm::mat4 value) const;
 
-    unsigned int program{};
+    unsigned int Program{};
 };

@@ -42,6 +42,10 @@ add_executable(minecraft_opengl src/main.cpp
         src/texture_atlas.hpp
         src/camera.hpp
         src/camera.cpp
+        src/game.cpp
+        src/game.hpp
+        src/window.cpp
+        src/window.hpp
 )
 
 target_link_libraries(minecraft_opengl PRIVATE glad glfw freetype2)

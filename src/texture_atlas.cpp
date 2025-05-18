@@ -124,6 +124,7 @@ bool AtlasManager::save(const std::string& path) const {
     glBindTexture(GL_TEXTURE_2D, m_id);
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlasData);
 
+    stbi_flip_vertically_on_write(true);
     stbi_write_png(texturePath.c_str(), m_atlasWidth, m_atlasHeight, STBI_rgb_alpha, atlasData, m_atlasWidth * 4);
 
     delete[] atlasData;
