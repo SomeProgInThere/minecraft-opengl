@@ -4,7 +4,7 @@
 #include <iostream>
 
 Window::Window(const std::string &title, const unsigned int width, const unsigned int height)
-    : m_width(width), m_height(height), m_title(title) {
+    : m_title(title), m_width(width), m_height(height) {
 
     glfwInit();
 
