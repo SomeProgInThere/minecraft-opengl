@@ -1,26 +1,28 @@
 #pragma once
 
-#include "camera.hpp"
-#include "texture_atlas.hpp"
-#include "window.hpp"
+#include "system/player_camera.hpp"
+#include "system/atlas_manager.hpp"
+#include "opengl/window.hpp"
 
-class Game {
-public:
-    Game();
-    ~Game();
+namespace minecraft {
 
-    void run();
+    class Game {
+    public:
+        Game();
+        ~Game();
 
-private:
-    void update();
+        void run();
 
-    unsigned int m_vertexBuffer{};
-    unsigned int m_indexBuffer{};
-    unsigned int m_vertexArray{};
+    private:
+        void update();
 
-    Window m_window;
-    Camera m_camera;
-    Shader m_quadShader;
-    // Shader m_textShader;
-    AtlasManager m_atlasManager;
-};
+        unsigned int m_vertexBuffer{};
+        unsigned int m_indexBuffer{};
+        unsigned int m_vertexArray{};
+
+        opengl::Window m_window;
+        opengl::ShaderProgram m_quadShader;
+        system::PlayerCamera m_camera;
+        system::AtlasManager m_atlasManager;
+    };
+}

@@ -29,16 +29,17 @@ include_directories(
 )
 
 add_executable(minecraft_opengl src/main.cpp
-        src/shader.hpp
-        src/shader.cpp
-        src/texture_atlas.cpp
-        src/texture_atlas.hpp
-        src/camera.hpp
-        src/camera.cpp
+        src/opengl/shader.hpp
+        src/opengl/shader.cpp
+        src/system/atlas_manager.cpp
+        src/system/atlas_manager.hpp
+        src/system/player_camera.hpp
+        src/system/player_camera.cpp
         src/game.cpp
         src/game.hpp
-        src/window.cpp
-        src/window.hpp
+        src/opengl/window.cpp
+        src/opengl/window.hpp
+        src/system/direction.hpp
 )
 
 target_link_libraries(minecraft_opengl PRIVATE glad glfw)
