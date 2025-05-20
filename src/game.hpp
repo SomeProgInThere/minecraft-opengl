@@ -1,10 +1,13 @@
 #pragma once
 
-#include "system/player_camera.hpp"
-#include "system/atlas_manager.hpp"
+#include "systems/player_camera.hpp"
+#include "systems/atlas_manager.hpp"
 #include "opengl/window.hpp"
 
 namespace minecraft {
+    const std::filesystem::path SOURCE_DIR = PROJECT_SOURCE_DIR;
+    const std::filesystem::path ASSETS_DIR = SOURCE_DIR / "assets";
+    const std::filesystem::path SHADERS_DIR = SOURCE_DIR / "shaders";
 
     class Game {
     public:
@@ -22,7 +25,7 @@ namespace minecraft {
 
         opengl::Window m_window;
         opengl::ShaderProgram m_quadShader;
-        system::PlayerCamera m_camera;
-        system::AtlasManager m_atlasManager;
+        systems::PlayerCamera m_camera;
+        systems::AtlasManager m_atlasManager;
     };
 }

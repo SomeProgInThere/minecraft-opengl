@@ -20,7 +20,7 @@ namespace minecraft {
     Game::Game()
         : m_window(opengl::Window("minecraft-opengl", 1280, 720)),
         m_quadShader(opengl::ShaderProgram("quadVertex.glsl", "quadFragment.glsl")),
-        m_camera(system::PlayerCamera(glm::vec3(0.0f, 0.0f, 3.0f), m_window.getAspectRatio())) {
+        m_camera(systems::PlayerCamera(glm::vec3(0.0f, 0.0f, 3.0f), m_window.getAspectRatio())) {
 
         glGenVertexArrays(1, &m_vertexArray);
         glBindVertexArray(m_vertexArray);
@@ -41,10 +41,9 @@ namespace minecraft {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDICES), INDICES, GL_STATIC_DRAW);
 
-        // m_textShader = Shader("text_vertex.glsl", "text_fragment.glsl");
         m_window.setCameraRefs(m_camera, m_quadShader);
 
-        m_atlasManager = system::AtlasManager();
+        m_atlasManager = systems::AtlasManager();
         m_atlasManager.addTexture("test0", "test.png");
         m_atlasManager.addTexture("test1", "test1.png");
         m_atlasManager.addTexture("test2", "test2.png");
@@ -52,10 +51,6 @@ namespace minecraft {
 
         if (!m_atlasManager.build()) {
             std::cout << "Failed to build texture atlas" << std::endl;
-        }
-
-        if (!m_atlasManager.save("atlas.png")) {
-            std::cout << "Failed to save texture atlas" << std::endl;
         }
 
         glBindTexture(GL_TEXTURE_2D, m_atlasManager.getID());
@@ -84,12 +79,12 @@ namespace minecraft {
         m_quadShader.use();
         m_quadShader.setUniformMat4("model", glm::mat4(1.0f));
 
-        const system::AtlasRegion* region = m_atlasManager.getRegion("test0");
+        const auto region = m_atlasManager.getRegion("test0").value();
 
-        m_quadShader.setUniformVec2("texOffset", region->topLeft);
+        m_quadShader.setUniformVec2("texOffset", region.topLeft);
         m_quadShader.setUniformVec2("texScale", {
-            region->bottomRight.x - region->topLeft.x,
-            region->bottomRight.y - region->topLeft.y
+            region.bottomRight.x - region.topLeft.x,
+            region.bottomRight.y - region.topLeft.y
         });
 
         glBindVertexArray(m_vertexArray);

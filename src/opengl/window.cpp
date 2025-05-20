@@ -5,7 +5,7 @@
 
 namespace minecraft::opengl {
 
-    Window::Window(const std::string &title, const int width, const int height)
+    Window::Window(const std::string_view title, const int width, const int height)
         : m_title(title), m_width(width), m_height(height) {
 
         glfwInit();
@@ -14,7 +14,7 @@ namespace minecraft::opengl {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+        m_window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
         if (!m_window) {
             std::cout << "Failed to create GLFW window!" << std::endl;
             glfwTerminate();
@@ -73,7 +73,7 @@ namespace minecraft::opengl {
         return m_window;
     }
 
-    void Window::setCameraRefs(system::PlayerCamera &camera, ShaderProgram& shader) {
+    void Window::setCameraRefs(systems::PlayerCamera &camera, ShaderProgram& shader) {
         m_camera = &camera;
         m_shader = &shader;
     }
@@ -91,22 +91,22 @@ namespace minecraft::opengl {
             glfwSetWindowShouldClose(m_window, true);
 
         if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
-            m_camera->processKeyboard(system::Direction::FORWARD, m_deltaTime);
+            m_camera->processKeyboard(primitives::Direction::FORWARD, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
-            m_camera->processKeyboard(system::Direction::BACKWARD, m_deltaTime);
+            m_camera->processKeyboard(primitives::Direction::BACKWARD, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
-            m_camera->processKeyboard(system::Direction::LEFT, m_deltaTime);
+            m_camera->processKeyboard(primitives::Direction::LEFT, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
-            m_camera->processKeyboard(system::Direction::RIGHT, m_deltaTime);
+            m_camera->processKeyboard(primitives::Direction::RIGHT, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
-            m_camera->processKeyboard(system::Direction::UP, m_deltaTime);
+            m_camera->processKeyboard(primitives::Direction::UP, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-            m_camera->processKeyboard(system::Direction::DOWN, m_deltaTime);
+            m_camera->processKeyboard(primitives::Direction::DOWN, m_deltaTime);
     }
 
     void Window::processToggleInputs() {

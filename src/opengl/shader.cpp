@@ -1,5 +1,7 @@
 #include "shader.hpp"
 
+#include "../game.hpp"
+
 #include <glad/glad.h>
 #include <gtc/type_ptr.hpp>
 
@@ -10,10 +12,9 @@
 
 namespace minecraft::opengl {
 
-    ShaderProgram::ShaderProgram(const char* vertexName, const char* fragmentName) {
-        const std::filesystem::path projectDir = PROJECT_SOURCE_DIR;
-        const std::filesystem::path vertexPath = projectDir / "shaders" / vertexName;
-        const std::filesystem::path fragmentPath = projectDir / "shaders" / fragmentName;
+    ShaderProgram::ShaderProgram(const std::string_view vertexName, const std::string_view fragmentName) {
+        const std::filesystem::path vertexPath = SHADERS_DIR / vertexName;
+        const std::filesystem::path fragmentPath = SHADERS_DIR / fragmentName;
 
         std::string vertexProgram;
         std::string fragmentProgram;
@@ -84,14 +85,19 @@ namespace minecraft::opengl {
         glDeleteShader(fragment);
     }
 
-    void ShaderProgram::setUniformVec2(const char *name, const glm::vec2 value) const {
-        const int location = glGetUniformLocation(Program, name);
+    void ShaderProgram::setUniformVec2(const std::string_view name, const glm::vec2 value) const {
+        const int location = glGetUniformLocation(Program, name.data());
         glUniform2f(location, value.x, value.y);
     }
 
-    void ShaderProgram::setUniformMat4(const char *name, glm::mat4 value) const {
-        const int location = glGetUniformLocation(Program, name);
+    void ShaderProgram::setUniformMat4(const std::string_view name, glm::mat4 value) const {
+        const int location = glGetUniformLocation(Program, name.data());
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+    }
+
+    void ShaderProgram::setUniformInt(const std::string_view name, const int value) const {
+        const int location = glGetUniformLocation(Program, name.data());
+        glUniform1i(location, value);
     }
 
     void ShaderProgram::use() const {

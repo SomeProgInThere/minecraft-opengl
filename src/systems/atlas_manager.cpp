@@ -1,16 +1,17 @@
 #include "atlas_manager.hpp"
 
+#include "../game.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
-
 #include <glad/glad.h>
 
 #include <algorithm>
 #include <iostream>
 
-namespace minecraft::system {
+namespace minecraft::systems {
 
     Texture2D::Texture2D()
         : data(nullptr), width(0), height(0), channels(0) {}
@@ -19,12 +20,12 @@ namespace minecraft::system {
         stbi_image_free(data);
     }
 
-    bool AtlasManager::addTexture(const std::string& name, const std::string& path) {
-        if (m_atlasRegions.contains(name)) {
+    bool AtlasManager::addTexture(const std::string_view name, const std::string_view path) {
+        if (m_atlasRegions.contains(name.data())) {
             return true;
         }
 
-        const std::string texturePath = (m_assetsPath / path).string();
+        const std::string texturePath = (ASSETS_DIR / path).string();
         const auto texture = std::make_shared<Texture2D>();
 
         texture->path = texturePath;
@@ -41,7 +42,7 @@ namespace minecraft::system {
         }
 
         m_pendingTextures.push_back(texture);
-        m_textureCache[name] = texture;
+        m_textureCache[name.data()] = texture;
         m_requiresRebuild = true;
 
         return true;
@@ -84,7 +85,7 @@ namespace minecraft::system {
             }
         }
 
-        unsigned char* atlasData;
+        std::vector<unsigned char> atlasData;
         if (!packTextures(atlasData)) {
             return false;
         }
@@ -101,10 +102,18 @@ namespace minecraft::system {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_atlasWidth, m_atlasHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlasData);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            m_atlasWidth, m_atlasHeight,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            atlasData.data()
+        );
 
-        delete[] atlasData;
+        glGenerateMipmap(GL_TEXTURE_2D);
 
         m_pendingTextures.clear();
         m_requiresRebuild = false;
@@ -115,21 +124,20 @@ namespace minecraft::system {
         return true;
     }
 
-    bool AtlasManager::save(const std::string& path) const {
+    bool AtlasManager::save(const std::string_view path) const {
         if (m_id == 0) {
             return false;
         }
 
-        const std::string texturePath = (m_assetsPath / path).string();
-        auto* atlasData = new unsigned char[m_atlasWidth * m_atlasHeight * 4];
+        const std::string texturePath = (ASSETS_DIR / path).string();
+        std::vector<unsigned char> atlasData(m_atlasWidth * m_atlasHeight * 4);
 
         glBindTexture(GL_TEXTURE_2D, m_id);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlasData);
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlasData.data());
 
         stbi_flip_vertically_on_write(true);
-        stbi_write_png(texturePath.c_str(), m_atlasWidth, m_atlasHeight, STBI_rgb_alpha, atlasData, m_atlasWidth * 4);
+        stbi_write_png(texturePath.c_str(), m_atlasWidth, m_atlasHeight, STBI_rgb_alpha, atlasData.data(), m_atlasWidth * 4);
 
-        delete[] atlasData;
         return true;
     }
 
@@ -141,22 +149,21 @@ namespace minecraft::system {
         return m_id;
     }
 
-    const AtlasRegion* AtlasManager::getRegion(const std::string& name) {
+    std::optional<AtlasRegion> AtlasManager::getRegion(const std::string_view name) {
         if (m_requiresRebuild) {
             build();
         }
 
-        const auto regionIter = m_atlasRegions.find(name);
-        if (regionIter != m_atlasRegions.end()) {
-            return &regionIter->second;
+        if (m_atlasRegions.contains(name.data())) {
+            return m_atlasRegions.at(name.data());
         }
 
-        return nullptr;
+        return std::nullopt;
     }
 
-    void AtlasManager::unloadTexture(const std::string& name) {
-        m_atlasRegions.erase(name);
-        m_textureCache.erase(name);
+    void AtlasManager::unloadTexture(const std::string_view name) {
+        m_atlasRegions.erase(name.data());
+        m_textureCache.erase(name.data());
     }
 
     void AtlasManager::unloadAll() {
@@ -171,9 +178,6 @@ namespace minecraft::system {
     }
 
     AtlasManager::AtlasManager() {
-        const std::filesystem::path projectDir = PROJECT_SOURCE_DIR;
-        m_assetsPath = projectDir / "assets";
-
         stbi_set_flip_vertically_on_load(true);
     }
 
@@ -181,8 +185,8 @@ namespace minecraft::system {
         unloadAll();
     }
 
-    bool AtlasManager::packTextures(unsigned char*& atlasData) {
-        atlasData = new unsigned char[m_atlasWidth * m_atlasHeight * 4];
+    bool AtlasManager::packTextures(std::vector<unsigned char>& atlasData) {
+        atlasData.resize(m_atlasWidth * m_atlasHeight * 4);
         int posX = 0, posY = 0;
         int rowHeight = 0;
 
@@ -209,7 +213,6 @@ namespace minecraft::system {
             }
 
             if (posY + texture->height > m_atlasHeight) {
-                delete[] atlasData;
                 std::cerr << "Atlas size too large. Max size: " << MAX_ATLAS_SIZE << std::endl;
                 m_requiresRebuild = false;
                 return false;

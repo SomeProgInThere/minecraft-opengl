@@ -13,6 +13,6 @@ uniform vec2 texOffset;
 uniform vec2 texScale;
 
 void main() {
-    gl_Position = projection * view * model * vec4(inPos, 1.0);
-    texCoord = texOffset + inTexCoord * texScale;
+    gl_Position = projection * view * model * vec4(quadPos, 1.0);
+    texCoord = texOffset + quadTexCoord * texScale;
 }
