@@ -4,9 +4,9 @@
 
 #include <gtc/matrix_transform.hpp>
 
-#include "../primitives/direction.hpp"
+#include "../primitive/direction.hpp"
 
-namespace minecraft::systems {
+namespace minecraft::system {
 
     constexpr float DEFAULT_FOV = 45.0f;
     constexpr float DEFAULT_MAX_FOV = 80.0f;
@@ -27,7 +27,7 @@ namespace minecraft::systems {
 
         void updateUniforms(const opengl::ShaderProgram& shader) const;
 
-        void processKeyboard(primitives::Direction direction, float deltaTime);
+        void processKeyboard(primitive::Direction direction, float deltaTime);
         void processMouseMovement(float offsetX, float offsetY);
         void processMouseScroll(float yOffset);
 

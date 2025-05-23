@@ -1,8 +1,9 @@
 #pragma once
 
-#include "systems/player_camera.hpp"
-#include "systems/atlas_manager.hpp"
+#include "system/player_camera.hpp"
+#include "system/atlas_manager.hpp"
 #include "opengl/window.hpp"
+#include "world/chunk.hpp"
 
 namespace minecraft {
     const std::filesystem::path SOURCE_DIR = PROJECT_SOURCE_DIR;
@@ -23,9 +24,11 @@ namespace minecraft {
         unsigned int m_indexBuffer{};
         unsigned int m_vertexArray{};
 
+        world::Chunk m_chunk;
+
         opengl::Window m_window;
         opengl::ShaderProgram m_quadShader;
-        systems::PlayerCamera m_camera;
-        systems::AtlasManager m_atlasManager;
+        system::PlayerCamera m_camera;
+        system::AtlasManager m_atlasManager;
     };
 }

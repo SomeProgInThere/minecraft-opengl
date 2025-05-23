@@ -73,7 +73,7 @@ namespace minecraft::opengl {
         return m_window;
     }
 
-    void Window::setCameraRefs(systems::PlayerCamera &camera, ShaderProgram& shader) {
+    void Window::setCameraRefs(system::PlayerCamera &camera, ShaderProgram& shader) {
         m_camera = &camera;
         m_shader = &shader;
     }
@@ -91,22 +91,22 @@ namespace minecraft::opengl {
             glfwSetWindowShouldClose(m_window, true);
 
         if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
-            m_camera->processKeyboard(primitives::Direction::FORWARD, m_deltaTime);
+            m_camera->processKeyboard(primitive::Direction::FRONT, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
-            m_camera->processKeyboard(primitives::Direction::BACKWARD, m_deltaTime);
+            m_camera->processKeyboard(primitive::Direction::BACK, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
-            m_camera->processKeyboard(primitives::Direction::LEFT, m_deltaTime);
+            m_camera->processKeyboard(primitive::Direction::LEFT, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
-            m_camera->processKeyboard(primitives::Direction::RIGHT, m_deltaTime);
+            m_camera->processKeyboard(primitive::Direction::RIGHT, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
-            m_camera->processKeyboard(primitives::Direction::UP, m_deltaTime);
+            m_camera->processKeyboard(primitive::Direction::UP, m_deltaTime);
 
         if (glfwGetKey(m_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-            m_camera->processKeyboard(primitives::Direction::DOWN, m_deltaTime);
+            m_camera->processKeyboard(primitive::Direction::DOWN, m_deltaTime);
     }
 
     void Window::processToggleInputs() {

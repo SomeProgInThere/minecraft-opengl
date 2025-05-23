@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <unordered_map>
 
-namespace minecraft::systems {
+namespace minecraft::system {
 
     #define MIN_ATLAS_SIZE 32
     #define MAX_ATLAS_SIZE 128
@@ -35,7 +35,7 @@ namespace minecraft::systems {
         AtlasManager();
         ~AtlasManager();
 
-        bool addTexture(std::string_view name, std::string_view path);
+        bool loadAssetDirectory();
         std::optional<AtlasRegion> getRegion(std::string_view name);
         void unloadTexture(std::string_view name);
         [[nodiscard]] bool save(std::string_view path) const;
@@ -45,6 +45,7 @@ namespace minecraft::systems {
         void unloadAll();
 
     private:
+        bool loadTexture(std::string_view name, std::string_view path);
         bool packTextures(std::vector<unsigned char>& atlasData);
 
         std::unordered_map<std::string, AtlasRegion> m_atlasRegions{};

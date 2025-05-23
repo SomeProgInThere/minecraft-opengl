@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace minecraft::systems {
+namespace minecraft::system {
 
     Texture2D::Texture2D()
         : data(nullptr), width(0), height(0), channels(0) {}
@@ -20,32 +20,27 @@ namespace minecraft::systems {
         stbi_image_free(data);
     }
 
-    bool AtlasManager::addTexture(const std::string_view name, const std::string_view path) {
-        if (m_atlasRegions.contains(name.data())) {
-            return true;
+    bool AtlasManager::loadAssetDirectory() {
+        bool allLoaded = true;
+
+        for (const auto& file : std::filesystem::directory_iterator(ASSETS_DIR)) {
+            if (!file.is_regular_file()) {
+                continue;
+            }
+
+            const auto& filepath = file.path();
+            if (filepath.extension() != ".png") {
+                continue;
+            }
+
+            const std::string textureName = filepath.stem().string();
+            if (!loadTexture(textureName, filepath.string())) {
+                std::cerr << "Failed to load texture: " << filepath.string() << std::endl;
+                allLoaded = false;
+            }
         }
 
-        const std::string texturePath = (ASSETS_DIR / path).string();
-        const auto texture = std::make_shared<Texture2D>();
-
-        texture->path = texturePath;
-        texture->data = stbi_load(
-            texturePath.c_str(),
-            &texture->width, &texture->height,
-            &texture->channels,
-            STBI_rgb_alpha
-        );
-
-        if (!texture->data) {
-            std::cerr << "Failed to load texture for atlas: " << path << std::endl;
-            return false;
-        }
-
-        m_pendingTextures.push_back(texture);
-        m_textureCache[name.data()] = texture;
-        m_requiresRebuild = true;
-
-        return true;
+        return allLoaded;
     }
 
     bool AtlasManager::build() {
@@ -183,6 +178,34 @@ namespace minecraft::systems {
 
     AtlasManager::~AtlasManager() {
         unloadAll();
+    }
+
+    bool AtlasManager::loadTexture(const std::string_view name, const std::string_view path) {
+        if (m_atlasRegions.contains(name.data())) {
+            return true;
+        }
+
+        const std::string texturePath = (ASSETS_DIR / path).string();
+        const auto texture = std::make_shared<Texture2D>();
+
+        texture->path = texturePath;
+        texture->data = stbi_load(
+            texturePath.c_str(),
+            &texture->width, &texture->height,
+            &texture->channels,
+            STBI_rgb_alpha
+        );
+
+        if (!texture->data) {
+            std::cerr << "Failed to load data for texture: " << path << std::endl;
+            return false;
+        }
+
+        m_pendingTextures.push_back(texture);
+        m_textureCache[name.data()] = texture;
+        m_requiresRebuild = true;
+
+        return true;
     }
 
     bool AtlasManager::packTextures(std::vector<unsigned char>& atlasData) {

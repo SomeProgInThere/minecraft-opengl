@@ -1,6 +1,6 @@
 #include "player_camera.hpp"
 
-namespace minecraft::systems {
+namespace minecraft::system {
 
     PlayerCamera::PlayerCamera(const glm::vec3 position, const float aspectRatio) {
         Position = position;
@@ -27,16 +27,16 @@ namespace minecraft::systems {
         shader.setUniformMat4("projection", projection);
     }
 
-    void PlayerCamera::processKeyboard(const primitives::Direction direction, const float deltaTime) {
+    void PlayerCamera::processKeyboard(const primitive::Direction direction, const float deltaTime) {
         const float velocity = MovementSpeed * deltaTime;
 
         switch (direction) {
-            case primitives::Direction::FORWARD:  Position += m_front * velocity; break;
-            case primitives::Direction::BACKWARD: Position -= m_front * velocity; break;
-            case primitives::Direction::LEFT:     Position -= m_right * velocity; break;
-            case primitives::Direction::RIGHT:    Position += m_right * velocity; break;
-            case primitives::Direction::UP:       Position += m_up * velocity; break;
-            case primitives::Direction::DOWN:     Position -= m_up * velocity; break;
+            case primitive::Direction::FRONT:  Position += m_front * velocity; break;
+            case primitive::Direction::BACK: Position -= m_front * velocity; break;
+            case primitive::Direction::LEFT:     Position -= m_right * velocity; break;
+            case primitive::Direction::RIGHT:    Position += m_right * velocity; break;
+            case primitive::Direction::UP:       Position += m_up * velocity; break;
+            case primitive::Direction::DOWN:     Position -= m_up * velocity; break;
         }
     }
 

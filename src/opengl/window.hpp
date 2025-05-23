@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../systems/player_camera.hpp"
+#include "../system/player_camera.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -19,7 +19,7 @@ namespace minecraft::opengl {
         ~Window();
 
         void update();
-        void setCameraRefs(systems::PlayerCamera& camera, ShaderProgram& shader);
+        void setCameraRefs(system::PlayerCamera& camera, ShaderProgram& shader);
 
         [[nodiscard]]
         GLFWwindow* getWindow() const;
@@ -39,7 +39,7 @@ namespace minecraft::opengl {
         GLFWwindow* m_window{};
         std::string_view m_title;
 
-        systems::PlayerCamera* m_camera{};
+        system::PlayerCamera* m_camera{};
         ShaderProgram* m_shader{};
 
         int m_width{};
