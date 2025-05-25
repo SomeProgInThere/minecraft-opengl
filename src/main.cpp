@@ -1,7 +1,7 @@
 #include "game.hpp"
 
 int main() {
-    minecraft::Game game;
+    minecraft::Game game{};
     game.run();
     return 0;
 }

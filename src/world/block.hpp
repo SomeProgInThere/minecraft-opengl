@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../system/atlas_manager.hpp"
-
 namespace minecraft::world {
 
     enum class BlockType {
@@ -22,14 +20,9 @@ namespace minecraft::world {
             return m_type != BlockType::AIR;
         }
 
-        // TODO: Only supports blocks with 6 same texture sides
-        std::optional<system::AtlasRegion> getTextureRegion(system::AtlasManager& manager) const {
-            switch (m_type) {
-                case BlockType::TEST:
-                    return manager.getRegion("test");
-                default:
-                    return std::nullopt;
-            }
+        [[nodiscard]]
+        uint8_t getType() const {
+            return static_cast<unsigned int>(m_type);
         }
 
     private:

@@ -3,17 +3,17 @@
 #include <glm.hpp>
 
 #include "direction.hpp"
+#include "texture.hpp"
 #include "../system/atlas_manager.hpp"
 
 namespace minecraft::primitive {
     struct Quad {
         glm::vec3 vertices[4]{};
         Direction direction{};
-        system::AtlasRegion textureRegion{};
+        glm::ivec3 position{};
 
-        Quad(const Direction direction, const glm::vec3 position, const system::AtlasRegion& textureRegion)
-            : direction(direction),
-            textureRegion(textureRegion) {
+        Quad(const Direction direction, const glm::vec3 position)
+            : direction(direction), position(position) {
 
             switch (direction) {
                 case Direction::FRONT:

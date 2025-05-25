@@ -23,16 +23,16 @@ namespace minecraft::system {
         const auto view = glm::lookAt(Position, Position + m_front, m_up);
         const auto projection = glm::perspective(glm::radians(Fov), AspectRatio, DEFAULT_Z_NEAR, DEFAULT_Z_FAR);
 
-        shader.setUniformMat4("view", view);
-        shader.setUniformMat4("projection", projection);
+        shader.setUniformMat4("cameraView", view);
+        shader.setUniformMat4("cameraProj", projection);
     }
 
     void PlayerCamera::processKeyboard(const primitive::Direction direction, const float deltaTime) {
         const float velocity = MovementSpeed * deltaTime;
 
         switch (direction) {
-            case primitive::Direction::FRONT:  Position += m_front * velocity; break;
-            case primitive::Direction::BACK: Position -= m_front * velocity; break;
+            case primitive::Direction::FRONT:    Position += m_front * velocity; break;
+            case primitive::Direction::BACK:     Position -= m_front * velocity; break;
             case primitive::Direction::LEFT:     Position -= m_right * velocity; break;
             case primitive::Direction::RIGHT:    Position += m_right * velocity; break;
             case primitive::Direction::UP:       Position += m_up * velocity; break;

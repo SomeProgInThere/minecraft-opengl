@@ -12,8 +12,8 @@
 #include <vector>
 
 namespace minecraft::world {
-    constexpr unsigned int CHUNK_SIZE = 8;
-    constexpr unsigned int CHUNK_HEIGHT = 32;
+    constexpr unsigned int CHUNK_SIZE = 16;
+    constexpr unsigned int CHUNK_HEIGHT = 128;
     constexpr unsigned int CHUNK_VOLUME = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
 
     const int CHUNK_SHIFT_OFFSET = static_cast<int>(std::log2(static_cast<int>(CHUNK_SIZE)));
@@ -24,8 +24,8 @@ namespace minecraft::world {
         ~Chunk();
 
         void buildData();
-        bool buildMesh(system::AtlasManager& manager);
-        void draw(const opengl::ShaderProgram& shader) const;
+        bool buildMesh();
+        void draw() const;
 
     private:
         [[nodiscard]]
@@ -37,7 +37,7 @@ namespace minecraft::world {
         static glm::ivec3 getBlockPosition(unsigned int index);
 
         void loadQuad(
-            std::vector<primitive::Quad>& quads, system::AtlasManager& manager, primitive::Direction direction, glm::ivec3 position
+            std::vector<primitive::Quad>& quads, primitive::Direction direction, glm::ivec3 position
         ) const;
         bool createBuffers(const std::vector<primitive::Vertex>& vertices, const std::vector<unsigned int>& indices);
 

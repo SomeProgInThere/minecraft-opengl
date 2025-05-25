@@ -11,7 +11,7 @@ namespace minecraft::primitive {
         DOWN,
     };
 
-    inline unsigned int getDirectionID(Direction direction) {
-        return static_cast<unsigned int>(direction);
+    inline uint8_t getDirectionID(Direction direction) {
+        return static_cast<uint8_t>(direction);
     }
 }

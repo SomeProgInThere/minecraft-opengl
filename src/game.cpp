@@ -4,10 +4,10 @@
 
 namespace minecraft {
     Game::Game()
-        : m_window(opengl::Window("minecraft-opengl", 1280, 720)),
+        : m_chunk(glm::ivec2(0)),
+        m_window(opengl::Window("minecraft-opengl", 1280, 720)),
         m_quadShader(opengl::ShaderProgram("quad_vertex.glsl", "quad_fragment.glsl")),
-        m_camera(system::PlayerCamera(glm::vec3(0.0f, 0.0f, 3.0f), m_window.getAspectRatio())),
-        m_chunk(glm::ivec2(0)) {
+        m_camera(system::PlayerCamera(glm::vec3(0.0f, 0.0f, 3.0f), m_window.getAspectRatio())) {
 
         m_window.setCameraRefs(m_camera, m_quadShader);
 
@@ -22,10 +22,13 @@ namespace minecraft {
             return;
         }
 
+        m_atlasManager.createUniformBuffer();
+        m_atlasManager.updateUniformBuffer();
+
         glBindTexture(GL_TEXTURE_2D, m_atlasManager.getID());
 
         m_chunk.buildData();
-        m_chunk.buildMesh(m_atlasManager);
+        m_chunk.buildMesh();
     }
 
     Game::~Game() {
@@ -48,7 +51,9 @@ namespace minecraft {
         glClearColor(0.2f, 0.227f, 0.251f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_chunk.draw(m_quadShader);
+        m_chunk.draw();
+
+        m_quadShader.use();
         m_window.update();
     }
 }

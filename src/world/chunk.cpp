@@ -20,7 +20,7 @@ namespace minecraft::world {
         }
     }
 
-    bool Chunk::buildMesh(system::AtlasManager& manager) {
+    bool Chunk::buildMesh() {
         std::vector<primitive::Quad> quads{};
 
         for (int y = 0; y < CHUNK_HEIGHT; y++) {
@@ -31,25 +31,25 @@ namespace minecraft::world {
                     if (auto [current, left, down, back] = getAdjacentBlocks(position);
                         current->solid()) {
 
-                        if (!left->solid()) {
-                            loadQuad(quads, manager, primitive::Direction::LEFT, position);
+                        if (left->solid()) {
+                            loadQuad(quads, primitive::Direction::LEFT, position);
                         }
-                        if (!down->solid()) {
-                            loadQuad(quads, manager, primitive::Direction::DOWN, position);
+                        if (down->solid()) {
+                            loadQuad(quads, primitive::Direction::DOWN, position);
                         }
-                        if (!back->solid()) {
-                            loadQuad(quads, manager, primitive::Direction::BACK, position);
+                        if (back->solid()) {
+                            loadQuad(quads, primitive::Direction::BACK, position);
                         }
                     }
                     else {
-                        if (left->solid()) {
-                            loadQuad(quads, manager, primitive::Direction::RIGHT, position);
+                        if (!left->solid()) {
+                            loadQuad(quads, primitive::Direction::RIGHT, position);
                         }
-                        if (down->solid()) {
-                            loadQuad(quads, manager, primitive::Direction::UP, position);
+                        if (!down->solid()) {
+                            loadQuad(quads, primitive::Direction::UP, position);
                         }
-                        if (back->solid()) {
-                            loadQuad(quads, manager, primitive::Direction::FRONT, position);
+                        if (!back->solid()) {
+                            loadQuad(quads, primitive::Direction::FRONT, position);
                         }
                     }
                 }
@@ -64,35 +64,32 @@ namespace minecraft::world {
         auto vertices = std::vector<primitive::Vertex>{};
         auto indices = std::vector<unsigned int>{};
 
-        unsigned int vertIdx = 0;
+        unsigned int index = 0;
 
         for (const auto& quad : quads) {
-            for (const auto vertex : quad.vertices) {
-                vertices.push_back({
+            const auto blockIndex = static_cast<unsigned int>(getBlock(quad.position)->getType());
+
+            for (const auto& vertex : quad.vertices) {
+                vertices.push_back(primitive::Vertex {
                     vertex,
+                    primitive::getDirectionID(quad.direction),
+                    blockIndex,
                 });
             }
 
-            indices.insert(indices.end(), {
-                vertIdx, vertIdx + 1, vertIdx + 2,
-                vertIdx, vertIdx + 2, vertIdx + 3,
-            });
+            const auto nextIndices = {
+                index, index + 1, index + 2,
+                index, index + 2, index + 3,
+            };
 
-            vertIdx += 4;
+            indices.insert(indices.end(), nextIndices);
+            index += 4;
         }
 
         return createBuffers(vertices, indices);
     }
 
-    void Chunk::draw(const opengl::ShaderProgram& shader) const {
-        shader.use();
-
-        // shader.setUniformVec2("texOffset", region.topLeft);
-        // shader.setUniformVec2("texScale", {
-        //     region.bottomRight.x - region.topLeft.x,
-        //     region.bottomRight.y - region.topLeft.y
-        // });
-
+    void Chunk::draw() const {
         glBindVertexArray(m_vertexArray);
         glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
@@ -151,16 +148,16 @@ namespace minecraft::world {
     }
 
     void Chunk::loadQuad(
-        std::vector<primitive::Quad> &quads, system::AtlasManager& manager, const primitive::Direction direction, const glm::ivec3 position
+        std::vector<primitive::Quad> &quads,
+        const primitive::Direction direction,
+        const glm::ivec3 position
     ) const {
 
-        const Block* block = getBlock(position);
-        if (!block->solid()) {
+        if (const Block* block = getBlock(position); !block->solid()) {
             return;
         }
 
-        const auto textureRegion = block->getTextureRegion(manager).value();
-        const auto quad = primitive::Quad{ direction, position, textureRegion };
+        const auto quad = primitive::Quad{ direction, position };
         quads.push_back(quad);
     }
 
@@ -170,15 +167,22 @@ namespace minecraft::world {
         glGenBuffers(1, &m_indexBuffer);
 
         glBindVertexArray(m_vertexArray);
+        constexpr auto vertexSize = sizeof(primitive::Vertex);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(primitive::Vertex), vertices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * vertexSize, vertices.data(), GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, nullptr);
+
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, reinterpret_cast<void*>(offsetof(primitive::Vertex, normalIndex)));
+
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, reinterpret_cast<void*>(offsetof(primitive::Vertex, blockIndex)));
 
         glBindVertexArray(0);
 
