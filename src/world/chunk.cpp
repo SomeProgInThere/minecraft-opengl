@@ -1,9 +1,7 @@
 #include "chunk.hpp"
 
-#include <iostream>
 #include <glad/glad.h>
-
-#include "../primitive/quad.hpp"
+#include <iostream>
 
 namespace minecraft::world {
 
@@ -65,15 +63,12 @@ namespace minecraft::world {
         auto indices = std::vector<unsigned int>{};
 
         unsigned int index = 0;
-
         for (const auto& quad : quads) {
-            const auto blockIndex = static_cast<unsigned int>(getBlock(quad.position)->getType());
-
-            for (const auto& vertex : quad.vertices) {
+            for (int i = 0; i < 4; i++) {
                 vertices.push_back(primitive::Vertex {
-                    vertex,
+                    quad.vertices[i],
+                    quad.texCoord[i],
                     primitive::getDirectionID(quad.direction),
-                    blockIndex,
                 });
             }
 
@@ -123,7 +118,7 @@ namespace minecraft::world {
     }
 
     unsigned int Chunk::getBlockIndex(const glm::ivec3 position) {
-        const unsigned int idx =  position.z | position.y << CHUNK_SHIFT_OFFSET | position.x << (CHUNK_SHIFT_OFFSET * 2);
+        const unsigned int idx =  position.z | position.y << CHUNK_SIZE_BIT_OFFSET | position.x << (2 * CHUNK_SIZE_BIT_OFFSET);
         return idx;
     }
 
@@ -140,7 +135,7 @@ namespace minecraft::world {
         const auto adjacentBlocks = std::array{
             getBlock(position),
             getBlock(glm::ivec3(position.x - 1, position.y, position.z)),  // left
-            getBlock(glm::ivec3(position.x, position.y - 1, position.z)), // down
+            getBlock(glm::ivec3(position.x, position.y - 1, position.z)),  // down
             getBlock(glm::ivec3(position.x, position.y, position.z - 1)),  // back
         };
 
@@ -179,10 +174,10 @@ namespace minecraft::world {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, nullptr);
 
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, reinterpret_cast<void*>(offsetof(primitive::Vertex, normalIndex)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize, reinterpret_cast<void*>(offsetof(primitive::Vertex, texCoord)));
 
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, reinterpret_cast<void*>(offsetof(primitive::Vertex, blockIndex)));
+        glVertexAttribPointer(2, 1, GL_UNSIGNED_INT, GL_FALSE, vertexSize, reinterpret_cast<void*>(offsetof(primitive::Vertex, faceIndex)));
 
         glBindVertexArray(0);
 

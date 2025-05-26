@@ -6,38 +6,34 @@ namespace minecraft {
     Game::Game()
         : m_chunk(glm::ivec2(0)),
         m_window(opengl::Window("minecraft-opengl", 1280, 720)),
-        m_quadShader(opengl::ShaderProgram("quad_vertex.glsl", "quad_fragment.glsl")),
+        m_renderProgram(opengl::ShaderProgram("quad_vertex.glsl", "quad_fragment.glsl")),
         m_camera(system::PlayerCamera(glm::vec3(0.0f, 0.0f, 3.0f), m_window.getAspectRatio())) {
 
-        m_window.setCameraRefs(m_camera, m_quadShader);
+        m_window.setCameraRefs(m_camera, m_renderProgram);
 
         m_atlasManager = system::AtlasManager();
-        if (!m_atlasManager.loadAssetDirectory()) {
-            std::cout << "Failed to load texture atlas!" << std::endl;
-            return;
-        }
+        m_atlasManager.loadTexture("test", "test.png");
 
         if (!m_atlasManager.build()) {
             std::cout << "Failed to build texture atlas!" << std::endl;
             return;
         }
 
-        m_atlasManager.createUniformBuffer();
-        m_atlasManager.updateUniformBuffer();
-
-        glBindTexture(GL_TEXTURE_2D, m_atlasManager.getID());
+        if (!m_atlasManager.save("atlas.png")) {
+            std::cout << "Failed to save texture atlas!" << std::endl;
+        }
 
         m_chunk.buildData();
         m_chunk.buildMesh();
+
+        m_renderProgram.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_atlasManager.getID());
+        glUniform1i(glGetUniformLocation(m_renderProgram.Program, "sampledTexture"), 0);
     }
 
     Game::~Game() {
         m_atlasManager.unloadAll();
-
-        glDeleteVertexArrays(1, &m_vertexArray);
-        glDeleteBuffers(1, &m_vertexBuffer);
-        glDeleteBuffers(1, &m_indexBuffer);
-
         glfwTerminate();
     }
 
@@ -52,8 +48,6 @@ namespace minecraft {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m_chunk.draw();
-
-        m_quadShader.use();
         m_window.update();
     }
 }

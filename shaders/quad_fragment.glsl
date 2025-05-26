@@ -1,12 +1,14 @@
 #version 460 core
 
 in vec2 texCoord;
-flat in float shading;
+in float shading;
 
 uniform sampler2D sampledTexture;
 
 out vec4 fragColor;
 
 void main() {
-    fragColor = texture(sampledTexture, texCoord) * shading;
+    vec4 texColor = texture(sampledTexture, texCoord);
+    fragColor = vec4(texColor.rgb * shading, texColor.a);
 }
+

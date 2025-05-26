@@ -3,15 +3,15 @@
 namespace minecraft::primitive {
 
     enum class Direction {
-        FRONT,
-        BACK,
-        LEFT,
-        RIGHT,
         UP,
         DOWN,
+        RIGHT,
+        LEFT,
+        FRONT,
+        BACK,
     };
 
-    inline uint8_t getDirectionID(Direction direction) {
-        return static_cast<uint8_t>(direction);
+    inline unsigned int getDirectionID(Direction direction) {
+        return static_cast<unsigned int>(direction);
     }
 }

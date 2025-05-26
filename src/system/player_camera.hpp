@@ -1,10 +1,7 @@
 #pragma once
 
-#include "../opengl/shader.hpp"
-
-#include <gtc/matrix_transform.hpp>
-
-#include "../primitive/direction.hpp"
+#include "shader.hpp"
+#include "direction.hpp"
 
 namespace minecraft::system {
 

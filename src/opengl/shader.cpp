@@ -1,14 +1,9 @@
 #include "shader.hpp"
 
-#include "../game.hpp"
-
 #include <glad/glad.h>
 #include <gtc/type_ptr.hpp>
-
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <filesystem>
 
 namespace minecraft::opengl {
 
@@ -85,19 +80,9 @@ namespace minecraft::opengl {
         glDeleteShader(fragment);
     }
 
-    void ShaderProgram::setUniformVec2(const std::string_view name, const glm::vec2 value) const {
-        const int location = glGetUniformLocation(Program, name.data());
-        glUniform2f(location, value.x, value.y);
-    }
-
     void ShaderProgram::setUniformMat4(const std::string_view name, glm::mat4 value) const {
         const int location = glGetUniformLocation(Program, name.data());
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
-    }
-
-    void ShaderProgram::setUniformInt(const std::string_view name, const int value) const {
-        const int location = glGetUniformLocation(Program, name.data());
-        glUniform1i(location, value);
     }
 
     void ShaderProgram::use() const {

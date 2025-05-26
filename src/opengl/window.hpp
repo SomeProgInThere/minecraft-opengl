@@ -1,10 +1,8 @@
 #pragma once
 
-#include "../system/player_camera.hpp"
-
+#include "player_camera.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <string>
 
 namespace minecraft::opengl {
 

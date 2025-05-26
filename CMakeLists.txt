@@ -25,6 +25,11 @@ set_target_properties(
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/glm
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/stb
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/primitive
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/system
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/world
 )
 
 file(GLOB_RECURSE SOURCES src/*.cpp)

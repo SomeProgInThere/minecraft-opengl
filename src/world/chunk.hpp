@@ -1,22 +1,17 @@
 #pragma once
 
-#include "../primitive/vertex.hpp"
-#include "../primitive/direction.hpp"
-#include "../primitive/quad.hpp"
-#include "../opengl/shader.hpp"
+#include "vertex.hpp"
+#include "quad.hpp"
 #include "block.hpp"
-
-#include <glm.hpp>
-
-#include <array>
 #include <vector>
+#include <array>
 
 namespace minecraft::world {
-    constexpr unsigned int CHUNK_SIZE = 16;
-    constexpr unsigned int CHUNK_HEIGHT = 128;
+    constexpr unsigned int CHUNK_SIZE = 8;
+    constexpr unsigned int CHUNK_HEIGHT = 32;
     constexpr unsigned int CHUNK_VOLUME = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
 
-    const int CHUNK_SHIFT_OFFSET = static_cast<int>(std::log2(static_cast<int>(CHUNK_SIZE)));
+    const unsigned int CHUNK_SIZE_BIT_OFFSET = static_cast<unsigned int>(std::log2f(static_cast<float>(CHUNK_SIZE)));
 
     class Chunk {
     public:
@@ -51,7 +46,7 @@ namespace minecraft::world {
         unsigned int m_indexBuffer{};
         unsigned int m_vertexArray{};
 
-        unsigned int m_vertexCount{};
-        unsigned int m_indexCount{};
+        int m_vertexCount{};
+        int m_indexCount{};
     };
 }

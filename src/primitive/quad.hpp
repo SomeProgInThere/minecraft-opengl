@@ -1,19 +1,22 @@
 #pragma once
 
-#include <glm.hpp>
-
 #include "direction.hpp"
-#include "texture.hpp"
-#include "../system/atlas_manager.hpp"
+#include <glm.hpp>
 
 namespace minecraft::primitive {
     struct Quad {
-        glm::vec3 vertices[4]{};
-        Direction direction{};
-        glm::ivec3 position{};
+        glm::vec3 vertices[4];
+        glm::vec2 texCoord[4];
+        glm::ivec3 position;
+        Direction direction;
 
         Quad(const Direction direction, const glm::vec3 position)
-            : direction(direction), position(position) {
+            : texCoord{}, position(position), direction(direction) {
+
+            texCoord[0] = glm::vec2(0.0, 0.0);
+            texCoord[1] = glm::vec2(1.0, 0.0);
+            texCoord[2] = glm::vec2(1.0, 1.0);
+            texCoord[3] = glm::vec2(0.0, 1.0);
 
             switch (direction) {
                 case Direction::FRONT:

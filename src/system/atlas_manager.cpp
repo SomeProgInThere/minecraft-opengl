@@ -1,13 +1,6 @@
 #include "atlas_manager.hpp"
-#include "../game.hpp"
 
 #include <glad/glad.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
-
-#include <algorithm>
 #include <iostream>
 #include <ranges>
 
@@ -20,27 +13,32 @@ namespace minecraft::system {
         unloadAll();
     }
 
-    bool AtlasManager::loadAssetDirectory() {
-        bool allLoaded = true;
-
-        for (const auto& file : std::filesystem::directory_iterator(ASSETS_DIR)) {
-            if (!file.is_regular_file()) {
-                continue;
-            }
-
-            const auto& filepath = file.path();
-            if (filepath.extension() != ".png") {
-                continue;
-            }
-
-            const std::string textureName = filepath.stem().string();
-            if (!loadTexture(textureName, filepath.string())) {
-                std::cerr << "Failed to load texture: " << filepath.string() << std::endl;
-                allLoaded = false;
-            }
+    bool AtlasManager::loadTexture(const std::string_view name, const std::string_view path) {
+        if (m_atlasRegions.contains(name.data())) {
+            return true;
         }
 
-        return allLoaded;
+        const std::string texturePath = (ASSETS_DIR / path).string();
+        const auto texture = std::make_shared<Texture>();
+
+        texture->path = texturePath;
+        texture->data = stbi_load(
+            texturePath.c_str(),
+            &texture->width, &texture->height,
+            &texture->channels,
+            STBI_rgb_alpha
+        );
+
+        if (!texture->data) {
+            std::cerr << "Failed to load data for texture: " << path << std::endl;
+            return false;
+        }
+
+        m_pendingTextures.push_back(texture);
+        m_textureCache[name.data()] = texture;
+        m_requiresRebuild = true;
+
+        return true;
     }
 
     bool AtlasManager::build() {
@@ -50,7 +48,7 @@ namespace minecraft::system {
 
         std::ranges::sort(
             m_pendingTextures,
-            [](const std::shared_ptr<primitive::Texture>& a, const std::shared_ptr<primitive::Texture>& b) {
+            [](const std::shared_ptr<Texture>& a, const std::shared_ptr<Texture>& b) {
                 return a->height, b->height;
             }
         );
@@ -97,17 +95,7 @@ namespace minecraft::system {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            m_atlasWidth, m_atlasHeight,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            atlasData.data()
-        );
-
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_atlasWidth, m_atlasHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlasData.data());
         glGenerateMipmap(GL_TEXTURE_2D);
 
         m_pendingTextures.clear();
@@ -117,34 +105,6 @@ namespace minecraft::system {
                       << m_atlasRegions.size() << " textures" << std::endl;
 
         return true;
-    }
-
-    void AtlasManager::createUniformBuffer() {
-        glGenBuffers(1, &m_uniformBuffer);
-        glBindBuffer(GL_UNIFORM_BUFFER, m_uniformBuffer);
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(BlockTextureData), nullptr, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_uniformBuffer);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    }
-
-    void AtlasManager::updateUniformBuffer() {
-        BlockTextureData data{};
-
-        int index = 0;
-        for (const auto &region: m_atlasRegions | std::views::values) {
-            for (int face = 0; face < 6; face++) {
-
-                const int blockIndex = index * 6 + face;
-                data.texCoords[blockIndex].topLeft = region.topLeft;
-                data.texCoords[blockIndex].bottomRight = region.bottomRight;
-            }
-
-            index++;
-        }
-
-        glBindBuffer(GL_UNIFORM_BUFFER, m_uniformBuffer);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(BlockTextureData), &data);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
     bool AtlasManager::save(const std::string_view path) const {
@@ -172,7 +132,7 @@ namespace minecraft::system {
         return m_id;
     }
 
-    std::optional<primitive::AtlasRegion> AtlasManager::getRegion(const std::string_view name) {
+    std::optional<AtlasRegion> AtlasManager::getRegion(const std::string_view name) {
         if (m_requiresRebuild) {
             build();
         }
@@ -198,36 +158,6 @@ namespace minecraft::system {
         m_atlasRegions.clear();
         m_pendingTextures.clear();
         m_textureCache.clear();
-    }
-
-    bool AtlasManager::loadTexture(const std::string_view name, const std::string_view path) {
-        if (m_atlasRegions.contains(name.data())) {
-            return true;
-        }
-
-        const std::string texturePath = (ASSETS_DIR / path).string();
-        const auto texture = std::make_shared<primitive::Texture>();
-
-        const auto imageData = stbi_load(
-            texturePath.c_str(),
-            &texture->width, &texture->height,
-            &texture->channels,
-            STBI_rgb_alpha
-        );
-
-        texture->path = texturePath;
-        texture->data = std::make_unique<unsigned char>(*imageData);
-
-        if (!texture->data) {
-            std::cerr << "Failed to load data for texture: " << path << std::endl;
-            return false;
-        }
-
-        m_pendingTextures.push_back(texture);
-        m_textureCache[name.data()] = texture;
-        m_requiresRebuild = true;
-
-        return true;
     }
 
     bool AtlasManager::packTextures(std::vector<unsigned char>& atlasData) {
@@ -272,16 +202,16 @@ namespace minecraft::system {
                     const int dstIdx = ((posY + y) * m_atlasWidth + posX + x) * 4;
 
                     for (int ch = 0; ch < std::min(3, texture->channels); ch++) {
-                        atlasData[dstIdx + ch] = texture->data.get()[srcIdx + ch];
+                        atlasData[dstIdx + ch] = texture->data[srcIdx + ch];
                     }
 
                     atlasData[dstIdx + 3] = texture->channels == 4
-                        ? texture->data.get()[srcIdx + 3]
+                        ? texture->data[srcIdx + 3]
                         : 255;
                 }
             }
 
-            primitive::AtlasRegion region{};
+            AtlasRegion region{};
 
             region.topLeft = glm::vec2(
                 static_cast<float>(posX) / static_cast<float>(m_atlasWidth),

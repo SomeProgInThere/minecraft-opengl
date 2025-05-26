@@ -21,7 +21,7 @@ namespace minecraft::world {
         }
 
         [[nodiscard]]
-        uint8_t getType() const {
+        unsigned int getType() const {
             return static_cast<unsigned int>(m_type);
         }
 
